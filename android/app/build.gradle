@@ -4,7 +4,7 @@ android {
     namespace "com.yourcompany.labapp"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.yourcompany.labapp"
+        applicationId "com.merrooo.tvjcalibration"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
