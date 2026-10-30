@@ -4,9 +4,23 @@ Get-ChildItem -Recurse -File -Include *.json,*.xml,*.gradle,*.java,*.kt,*.html,*
   ForEach-Object { "$($_.Path):$($_.LineNumber): $($_.Line.Trim())" }
 ________________________________________________________________________________________________________________________
 
-npx cap sync android
-git add capacitor.config.json android/app/build.gradle android/app/src/main/res/values/strings.xml
-git commit -m "Rebrand from Lab App to TVJ App with unique package"
+# Check state
+git status
+
+# Stage everything
+git add -A
+
+# Verify TVJ.html is now included
+git status
+
+# Commit
+git commit -m "Continuous 3-interval cycles: silent pulses, cycle chime"
+
+# Push to main
 git push origin main
+
+# Force-delete and re-tag
+git tag -d v1.0.5
+git push origin :refs/tags/v1.0.5
 git tag v1.0.5
 git push origin v1.0.5
