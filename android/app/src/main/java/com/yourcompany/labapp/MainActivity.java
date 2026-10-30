@@ -1,4 +1,4 @@
-package com.yourcompany.labapp;
+package com.yourcompany.tvjapp;
 
 import com.getcapacitor.BridgeActivity;
 

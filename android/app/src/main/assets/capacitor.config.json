@@ -1,9 +1,9 @@
 {
-	"appId": "com.yourcompany.labapp",
-	"appName": "Lab App",
+	"appId": "com.yourcompany.tvjapp",
+	"appName": "TVJ App",
 	"bundledWebRuntime": false,
 	"npmClient": "npm",
-	"webDir": "Lab",
+	"webDir": "www",
 	"plugins": {
 		"SplashScreen": {
 			"launchShowDuration": 0
