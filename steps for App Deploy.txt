@@ -8,5 +8,5 @@ npx cap sync android
 git add capacitor.config.json android/app/build.gradle android/app/src/main/res/values/strings.xml
 git commit -m "Rebrand from Lab App to TVJ App with unique package"
 git push origin main
-git tag v1.0.2
-git push origin v1.0.2
+git tag v1.0.5
+git push origin v1.0.5
