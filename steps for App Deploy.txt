@@ -125,3 +125,6 @@ ic_launcher_foreground.png
 Important:
 
 ** Keep the same file names for you new image
+
+FOR PUSH A NEW APP TO THE IONIC PAGE
+npm install -g @ionic/cli
