@@ -25,11 +25,28 @@ jobs:
 
       - uses: android-actions/setup-android@v3
 
-      - name: Copy static files to www
+      - name: Verify structure
         run: |
-          rm -rf www
-          mkdir -p www
-          cp -r TVJ/* www/
+          echo "=== TVJ folder ==="
+          ls -la TVJ/
+          echo "=== android folder ==="
+          ls -la android/ | head -10
+
+      - name: Ensure index.html exists
+        run: |
+          if [ ! -f TVJ/index.html ]; then
+            if [ -f TVJ/TVJ.html ]; then
+              cp TVJ/TVJ.html TVJ/index.html
+              echo "Copied TVJ.html -> index.html"
+            else
+              echo "ERROR: no TVJ.html or index.html in TVJ/"
+              ls -la TVJ/
+              exit 1
+            fi
+          else
+            echo "index.html already exists"
+          fi
+          ls -la TVJ/
 
       - name: Install npm deps
         run: npm install --no-audit --no-fund
@@ -38,7 +55,9 @@ jobs:
         run: npx cap sync android
 
       - name: Decode keystore
-        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/release.keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/release.keystore
+          ls -la android/app/release.keystore
 
       - name: Build signed APK
         working-directory: android
@@ -47,7 +66,8 @@ jobs:
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          ./gradlew assembleRelease \
+          chmod +x gradlew
+          ./gradlew assembleRelease --stacktrace \
             -Pandroid.injected.signing.store.file=release.keystore \
             -Pandroid.injected.signing.store.password=$KS_PASS \
             -Pandroid.injected.signing.key.alias=$KEY_ALIAS \
