@@ -58,7 +58,7 @@ jobs:
       - name: Pin Gradle to 8.14.3
         run: |
           echo "distributionUrl=https\\://services.gradle.org/distributions/gradle-8.14.3-bin.zip" > android/gradle/wrapper/gradle-wrapper.properties
-          
+
       - name: Decode keystore
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/release.keystore
@@ -73,7 +73,7 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew assembleRelease --stacktrace \
-            -Pandroid.injected.signing.store.file=release.keystore \
+            -Pandroid.injected.signing.store.file=${{ github.workspace }}/android/app/release.keystore \
             -Pandroid.injected.signing.store.password=$KS_PASS \
             -Pandroid.injected.signing.key.alias=$KEY_ALIAS \
             -Pandroid.injected.signing.key.password=$KEY_PASS
