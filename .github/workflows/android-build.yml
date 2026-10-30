@@ -1,14 +1,17 @@
-name: Build Android APK
+name: Build & Release Android APK
 
 on:
   push:
-    branches: [ main, master ] # Triggers on pushes to your main branch
-  workflow_dispatch: # Allows you to trigger it manually from the Actions tab
+    branches: [ main ]
+    tags: [ 'v*' ] # Triggers the release job only on version tags
+  workflow_dispatch: # Allows you to trigger it manually
+
+permissions:
+  contents: write # Needed to create a GitHub Release
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -23,26 +26,67 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '21' # Capacitor 7 typically requires JDK 21[reference:1]
+          java-version: '21'
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v2
+        uses: android-actions/setup-android@v3
 
-      - name: Install npm dependencies
+      - name: Install dependencies
         run: npm ci
 
       - name: Build web app
-        run: npm run build # Replace with your actual build script if different
+        run: npm run build
 
       - name: Sync Capacitor
         run: npx cap sync android
 
-      - name: Build Debug APK
-        working-directory: ./android
-        run: ./gradlew assembleDebug
+      - name: Decode Keystore
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/release.keystore
 
-      - name: Upload Debug APK
+      - name: Build Signed Release APK
+        working-directory: ./android
+        env:
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          ./gradlew assembleRelease \
+            -Pandroid.injected.signing.store.file=release.keystore \
+            -Pandroid.injected.signing.store.password=$KS_PASS \
+            -Pandroid.injected.signing.key.alias=$KEY_ALIAS \
+            -Pandroid.injected.signing.key.password=$KEY_PASS
+
+      - name: Build Signed Release AAB
+        working-directory: ./android
+        env:
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          ./gradlew bundleRelease \
+            -Pandroid.injected.signing.store.file=release.keystore \
+            -Pandroid.injected.signing.store.password=$KS_PASS \
+            -Pandroid.injected.signing.key.alias=$KEY_ALIAS \
+            -Pandroid.injected.signing.key.password=$KEY_PASS
+
+      - name: Prepare artifacts
+        run: |
+          mkdir -p dist
+          cp android/app/build/outputs/apk/release/app-release.apk dist/TVJ-APP-${GITHUB_REF_NAME}.apk
+          cp android/app/build/outputs/bundle/release/app-release.aab dist/TVJ-APP-${GITHUB_REF_NAME}.aab
+
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: TVJ-APP-debug-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: TVJ-release
+          path: dist/*
+
+      - name: Publish GitHub Release (on tag)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/TVJ-APP-${{ github.ref_name }}.apk
+            dist/TVJ-APP-${{ github.ref_name }}.aab
+          name: Release ${{ github.ref_name }}
+          generate_release_notes: true
