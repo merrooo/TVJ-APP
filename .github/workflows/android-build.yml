@@ -23,7 +23,6 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      # FIX: override packages to avoid installing the removed 'tools' package
       - uses: android-actions/setup-android@v3
         with:
           packages: platform-tools
@@ -36,6 +35,8 @@ jobs:
           ls -la TVJ/
           echo "=== android folder ==="
           ls -la android/ | head -10
+          echo "=== gradlew ==="
+          ls -la android/gradlew
 
       - name: Ensure index.html exists
         run: |
@@ -48,8 +49,6 @@ jobs:
               ls -la TVJ/
               exit 1
             fi
-          else
-            echo "index.html already exists"
           fi
           ls -la TVJ/
 
